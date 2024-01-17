@@ -1,0 +1,18 @@
+
+[THESE ARE TO CHECK THE DATA-BASE THROUGH CMD]
+
+
+1.)To see the data-base, open cmd and type "mysql -u root -p" and then type the password "Qwerty#80085".
+
+2.)To see the data-base, first you must select it		==> USE PROJECT1
+
+3.)We got 2 tables here, i. users
+		      ii. products
+
+	==> to see either, just type SELECT * FROM {user/products}
+
+4.)Enjoyyy ^^
+
+
+[WE NEED TO ALREADY HAVE MYSQL INSTALLED]
+

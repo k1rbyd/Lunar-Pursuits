@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+        }
+
+        nav li {
+            margin: 0;
+            padding: 0;
+        }
+
+        nav a {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+        }
+
+        nav a:hover {
+            background-color: #555;
+        }
+
+        .additional-content {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #explore-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #explore-button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Main Menu</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/buy.html">Buy Products</a></li>
+            <li><a href="/sell.html">Sell Products</a></li>
+            <li><a href="/views/stocks.html">View Stocks</a></li>
+            <li><a href="/views/to.html">View Transactions To Market</a></li>
+            <li><a href="/views/from.html">View Transactions From Market</a></li>
+            <li><a href="/config.html">Change Database Configuration</a></li>
+            <li><a href="/exit.html">Exit</a></li>
+        </ul>
+    </nav>
+    <section class="additional-content">
+        <h2>Additional Content</h2>
+        <p>Welcome to our online marketplace. Explore the options below:</p>
+        <button id="explore-button">Explore</button>
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>

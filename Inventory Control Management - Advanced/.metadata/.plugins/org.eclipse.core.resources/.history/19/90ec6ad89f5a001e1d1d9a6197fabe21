@@ -1,0 +1,323 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class InventoryControlManager {
+
+    private static final String HOST = "localhost";
+    private static final String USER = "root";
+    private static final String PASS = "Qwerty#80085";
+    private Connection connection;
+    private Scanner scanner;
+
+    public InventoryControlManager() {
+        connection = createConnection();
+        scanner = new Scanner(System.in);
+    }
+
+    private Connection createConnection() {
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://" + HOST + ":3306/PROJECT1", USER, PASS);
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+        return connection;
+    }
+
+    private void closeConnection() {
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private boolean authenticateUser(String username, String password) {
+        // Define your database connection details
+        String dbUrl = "jdbc:mysql://" + HOST + ":3306/" + "PROJECT1";
+        String dbUser = USER;
+        String dbPassword = PASS;
+
+        try (Connection connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
+            String query = "SELECT * FROM user WHERE username = ? AND password = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                ResultSet resultSet = stmt.executeQuery();
+                return resultSet.next(); // User exists if there is a matching row
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // Error occurred, consider the authentication as failed
+        }
+    }    
+    
+    
+    private void printMenu() {
+        System.out.println("Main Menu:");
+        System.out.println("[1] Manage Users");
+        System.out.println("[2] Manage Products");
+        System.out.println("[3] Exit");
+        System.out.print("Enter your choice: ");
+    }
+
+    public void run() {
+        int choice;
+        boolean exit = false;
+
+        while (!exit) {
+            printMenu();
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+            switch (choice) {
+                case 1:
+                    manageUsers();
+                    break;
+                case 2:
+                    manageProducts();
+                    break;
+                case 3:
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+
+        closeConnection();
+    }
+
+    private void manageUsers() {
+        boolean userManagementMenu = true;
+        
+        while (userManagementMenu) {
+            System.out.println("User Management Menu:");
+            System.out.println("[1] Create a new user");
+            System.out.println("[2] Delete an existing user");
+            System.out.println("[3] Display all users");
+            System.out.println("[4] Back to Main Menu");
+            System.out.print("Enter your choice: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+            
+            switch (choice) {
+                case 1:
+                    createUser();
+                    break;
+                case 2:
+                    deleteUser();
+                    break;
+                case 3:
+                    displayUsers();
+                    break;
+                case 4:
+                    userManagementMenu = false;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void createUser() {
+        System.out.print("Enter the new username: ");
+        String newUsername = scanner.nextLine();
+        System.out.print("Enter the new password: ");
+        String newPassword = scanner.nextLine();
+        
+        // Use a prepared statement to insert the new user into the database
+        String insertQuery = "INSERT INTO user(userid, passcode) VALUES (?, ?)";
+        try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+            insertStmt.setString(1, newUsername);
+            insertStmt.setString(2, newPassword);
+            int result = insertStmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("New user added successfully.");
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void deleteUser() {
+        System.out.print("Enter the username of the user you want to delete: ");
+        String deleteUser = scanner.nextLine();
+        
+        // Use a prepared statement to delete the user from the database
+        String deleteQuery = "DELETE FROM user WHERE userid = ?";
+        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+            deleteStmt.setString(1, deleteUser);
+            int result = deleteStmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("User deleted successfully.");
+            } else {
+                System.out.println("User not found.");
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void displayUsers() {
+        System.out.println("List of all users:");
+        String queryAllUsers = "SELECT * FROM user";
+        try (Statement stmt = connection.createStatement();
+             ResultSet resultSet = stmt.executeQuery(queryAllUsers)) {
+            while (resultSet.next()) {
+                System.out.println("UserID: " + resultSet.getString("userid") + " | Passcode: " + resultSet.getString("passcode"));
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void manageProducts() {
+        boolean productManagementMenu = true;
+        
+        while (productManagementMenu) {
+            System.out.println("Product Management Menu:");
+            System.out.println("[1] Create a new product");
+            System.out.println("[2] Edit an existing product");
+            System.out.println("[3] Delete an existing product");
+            System.out.println("[4] Display all products");
+            System.out.println("[5] Back to Main Menu");
+            System.out.print("Enter your choice: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+            
+            switch (choice) {
+                case 1:
+                    createProduct();
+                    break;
+                case 2:
+                    editProduct();
+                    break;
+                case 3:
+                    deleteProduct();
+                    break;
+                case 4:
+                    displayProducts();
+                    break;
+                case 5:
+                    productManagementMenu = false;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void createProduct() {
+        System.out.print("Enter the product ID: ");
+        int productID = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the product name: ");
+        String productName = scanner.nextLine();
+        System.out.print("Enter the quantity: ");
+        int quantity = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the price: ");
+        int price = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the seller name: ");
+        String sellerName = scanner.nextLine();
+        
+        // Use a prepared statement to insert the new product into the database
+        String insertQuery = "INSERT INTO products(productid, productname, quantity, price, seller_name) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+            insertStmt.setInt(1, productID);
+            insertStmt.setString(2, productName);
+            insertStmt.setInt(3, quantity);
+            insertStmt.setInt(4, price);
+            insertStmt.setString(5, sellerName);
+            int result = insertStmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("New product added successfully.");
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void editProduct() {
+        System.out.print("Enter the product ID of the product you want to edit: ");
+        int productID = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the new product name: ");
+        String newProductName = scanner.nextLine();
+        System.out.print("Enter the new quantity: ");
+        int newQuantity = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the new price: ");
+        int newPrice = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter the new seller name: ");
+        String newSellerName = scanner.nextLine();
+        
+        // Use a prepared statement to update the product in the database
+        String updateQuery = "UPDATE products SET productname = ?, quantity = ?, price = ?, seller_name = ? WHERE productid = ?";
+        try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+            updateStmt.setString(1, newProductName);
+            updateStmt.setInt(2, newQuantity);
+            updateStmt.setInt(3, newPrice);
+            updateStmt.setString(4, newSellerName);
+            updateStmt.setInt(5, productID);
+            int result = updateStmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("Product updated successfully.");
+            } else {
+                System.out.println("Product not found.");
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void deleteProduct() {
+        System.out.print("Enter the product ID of the product you want to delete: ");
+        int productID = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        
+        // Use a prepared statement to delete the product from the database
+        String deleteQuery = "DELETE FROM products WHERE productid = ?";
+        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+            deleteStmt.setInt(1, productID);
+            int result = deleteStmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("Product deleted successfully.");
+            } else {
+                System.out.println("Product not found.");
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void displayProducts() {
+        System.out.println("List of all products:");
+        String queryAllProducts = "SELECT * FROM products";
+        try (Statement stmt = connection.createStatement();
+             ResultSet resultSet = stmt.executeQuery(queryAllProducts)) {
+            while (resultSet.next()) {
+                System.out.println("Product ID: " + resultSet.getInt("productid") +
+                        " | Product Name: " + resultSet.getString("productname") +
+                        " | Quantity: " + resultSet.getInt("quantity") +
+                        " | Price: " + resultSet.getInt("price") +
+                        " | Seller Name: " + resultSet.getString("seller_name"));
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        InventoryControlManager manager = new InventoryControlManager();
+        manager.run();
+    }
+}

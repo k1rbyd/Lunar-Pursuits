@@ -1,0 +1,126 @@
+
+MAIN MENU 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Main Menu</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/buy.html">Buy Products</a></li>
+            <li><a href="/sell.html">Sell Products</a></li>
+            <li><a href="/views/from.html">View Transactions From Market</a></li>
+            <li><a href="/views/to.html">View Transactions To Market</a></li>
+            <li><a href="/config.html">Change Database Configuration</a></li>
+            <li><a href="/exit.html">Exit</a></li>
+        </ul>
+    </nav>
+    <section class="additional-content">
+        <h2>Additional Content</h2>
+        <p>Welcome to our online marketplace. Explore the options below:</p>
+        <button id="explore-button">Explore</button>
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+BUY
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Products</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Buy Products</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/buy.html">Buy Products</a></li>
+            <li><a href="/sell.html">Sell Products</a></li>
+            <li><a href="/view/from.html">View Transactions From Market</a></li>
+            <li><a href="/view/to.html">View Transactions To Market</a></li>
+            <li><a href="/config.html">Change Database Configuration</a></li>
+            <li><a href="/exit.html">Exit</a></li>
+        </ul>
+    </nav>
+    <section class="content">
+        <h2>Select Products to Buy</h2>
+        <form action="/buy" method="POST">
+            <label for="market">Market:</label>
+            <select id="market" name="market">
+                <option value="market1">Market 1</option>
+                <option value="market2">Market 2</option>
+                <option value="market3">Market 3</option>
+            </select><br><br>
+            
+            <label for="productName">Product Name:</label>
+            <input type="text" id="productName" name="productName" required><br><br>
+            
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required><br><br>
+            
+            <input type="submit" value="Buy">
+        </form>
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+SELL
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sell Products</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Sell Products</h1>
+    </header>
+    <form action="/sell" method="post">
+        <label for="market">Market:</label>
+        <select id="market" name="market" required>
+            <option value="market1">Market 1</option>
+            <option value="market2">Market 2</option>
+            <option value="market3">Market 3</option>
+        </select><br>
+
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" name="productName" required><br>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" required><br>
+
+        <button type="submit">Sell</button>
+    </form>
+    <a href="/">Back to Main Menu</a>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+

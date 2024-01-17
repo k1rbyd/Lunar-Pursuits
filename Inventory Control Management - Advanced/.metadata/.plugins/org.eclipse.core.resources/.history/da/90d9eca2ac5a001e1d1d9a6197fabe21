@@ -1,0 +1,194 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class InventoryControlManagerGUI extends JFrame {
+    private JButton adminButton;
+    private JButton userButton;
+    private JButton customerButton;
+    private JButton exitButton;
+
+    // Define your admin password here
+    private static final String PASS = "Qwerty#80085"; // Change this to your actual password
+
+    public InventoryControlManagerGUI() {
+        setTitle("Inventory Control Manager");
+        setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(4, 1));
+
+        adminButton = new JButton("ADMIN");
+        userButton = new JButton("USER");
+        customerButton = new JButton("CUSTOMER");
+        exitButton = new JButton("Exit");
+
+        mainPanel.add(adminButton);
+        mainPanel.add(userButton);
+        mainPanel.add(customerButton);
+        mainPanel.add(exitButton);
+
+        add(mainPanel);
+
+        adminButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Ask for the password
+                String inputPassword = JOptionPane.showInputDialog("Enter the admin password:");
+
+                // Check if the entered password matches the correct password
+                if (inputPassword != null && inputPassword.equals(PASS)) {
+                    // Password is correct, show admin menu
+                    showAdminMenu();
+                } else {
+                    // Password is incorrect, show an error message
+                    JOptionPane.showMessageDialog(null, "Access denied. Incorrect password.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        userButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Add code to handle the USER button click event
+                // Implement user functionality here
+                JOptionPane.showMessageDialog(null, "User functionality is not implemented yet.", "User", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        customerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Add code to handle the CUSTOMER button click event
+                // Implement customer functionality here
+                JOptionPane.showMessageDialog(null, "Customer functionality is not implemented yet.", "Customer", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        exitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+    }
+
+    private void showAdminMenu() {
+        try {
+            // Establish a database connection (replace with your actual database URL, username, and password)
+            String dbUrl = "jdbc:mysql://localuser/PROJECT1";
+            String dbUser = "root";
+            String dbPassword = "Qwerty#80085";
+            Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+
+            while (true) {
+                // Display the admin menu options
+                String adminChoice = JOptionPane.showInputDialog("Admin Menu:\n[1] : Edit User Database\n[2] : Edit Product Database\n[3] : Exit\nYour choice sir:");
+
+                if (adminChoice == null) {
+                    // User clicked cancel or closed the dialog, exit the loop
+                    break;
+                }
+
+                try {
+                    int choice1R = Integer.parseInt(adminChoice);
+
+                    // Implement the admin menu options here
+                    if (choice1R == 1) {
+                        // User database editing
+                        while (true) {
+                            String userEditChoice = JOptionPane.showInputDialog("User Database Editing:\n[1] : Create a new user\n[2] : Delete an existing user\n[3] : Display all users\n[4] : Exit\nYour choice sir:");
+
+                            if (userEditChoice == null) {
+                                // User clicked cancel or closed the dialog, exit the loop
+                                break;
+                            }
+
+                            try {
+                                int choice2R = Integer.parseInt(userEditChoice);
+
+                                if (choice2R == 1) {
+                                    // Create a new user
+                                    String newUsername = JOptionPane.showInputDialog("Enter the new user ID:");
+                                    String newPassword = JOptionPane.showInputDialog("Enter the new password:");
+
+                                    // Implement user creation in the database
+                                    String createUserSQL = "INSERT INTO user(userid, passcode) VALUES (?, ?)";
+                                    PreparedStatement createUserStmt = conn.prepareStatement(createUserSQL);
+                                    createUserStmt.setString(1, newUsername);
+                                    createUserStmt.setString(2, newPassword);
+                                    createUserStmt.executeUpdate();
+
+                                    JOptionPane.showMessageDialog(null, "New user added successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 2) {
+                                    // Delete an existing user
+                                    String deleteUser = JOptionPane.showInputDialog("Enter the user ID of the user you want to delete:");
+
+                                    // Implement user deletion in the database
+                                    String deleteUserSQL = "DELETE FROM user WHERE userid = ?";
+                                    PreparedStatement deleteUserStmt = conn.prepareStatement(deleteUserSQL);
+                                    deleteUserStmt.setString(1, deleteUser);
+                                    deleteUserStmt.executeUpdate();
+
+                                    JOptionPane.showMessageDialog(null, "User deleted successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 3) {
+                                    // Display all users
+                                    StringBuilder usersList = new StringBuilder("List of all users:\n");
+                                    String selectUsersSQL = "SELECT * FROM user";
+                                    PreparedStatement selectUsersStmt = conn.prepareStatement(selectUsersSQL);
+                                    ResultSet usersResultSet = selectUsersStmt.executeQuery();
+
+                                    while (usersResultSet.next()) {
+                                        String userId = usersResultSet.getString("userid");
+                                        String passcode = usersResultSet.getString("passcode");
+                                        usersList.append("UserID: ").append(userId).append(" | Passcode: ").append(passcode).append("\n");
+                                    }
+
+                                    JOptionPane.showMessageDialog(null, usersList.toString(), "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 4) {
+                                    // Exit user database editing
+                                    break;
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Invalid choice. Please select a valid option.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                }
+                            } catch (NumberFormatException ex) {
+                                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number.", "Admin", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    } else if (choice1R == 2) {
+                        // Product database editing
+                        while (true) {
+                            String productEditChoice = JOptionPane.showInputDialog("Product Database Editing:\n[1] : Create a new product\n[2] : Edit an existing product\n[3] : Delete an existing product\n[4] : Display all products\n[5] : Exit\nYour choice sir:");
+                            // ...
+                        }
+                    } else if (choice1R == 3) {
+                        // Exit the admin menu
+                        break;
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Invalid choice. Please select a valid option.", "Admin", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number.", "Admin", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+            // Close the database connection when done
+            conn.close();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database connection error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                InventoryControlManagerGUI inventoryControlManager = new InventoryControlManagerGUI();
+                inventoryControlManager.setVisible(true); // Set the instance to be visible
+            }
+        });
+    }
+}

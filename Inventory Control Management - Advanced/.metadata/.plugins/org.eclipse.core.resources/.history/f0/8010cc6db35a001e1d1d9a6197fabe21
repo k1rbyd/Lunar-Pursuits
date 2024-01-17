@@ -1,0 +1,439 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class InventoryControlManagerGUI extends JFrame {
+    private JButton adminButton;
+    private JButton userButton;
+    private JButton customerButton;
+    private JButton exitButton;
+
+    // Define your admin password here
+    private static final String PASS = "Qwerty#80085"; // Change this to your actual password
+
+    public InventoryControlManagerGUI() {
+        setTitle("Inventory Control Manager");
+        setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(4, 1));
+
+        adminButton = new JButton("ADMIN");
+        userButton = new JButton("USER");
+        customerButton = new JButton("CUSTOMER");
+        exitButton = new JButton("Exit");
+
+        mainPanel.add(adminButton);
+        mainPanel.add(userButton);
+        mainPanel.add(customerButton);
+        mainPanel.add(exitButton);
+
+        add(mainPanel);
+
+        adminButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Ask for the password
+                String inputPassword = JOptionPane.showInputDialog("Enter the admin password:");
+
+                // Check if the entered password matches the correct password
+                if (inputPassword != null && inputPassword.equals(PASS)) {
+                    // Password is correct, show admin menu
+                    showAdminMenu();
+                } else {
+                    // Password is incorrect, show an error message
+                    JOptionPane.showMessageDialog(null, "Access denied. Incorrect password.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        userButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Add code to handle the USER button click event
+                // Implement user functionality here
+                JOptionPane.showMessageDialog(null, "User functionality is not implemented yet.", "User", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        customerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Customer functionality
+                int choice = JOptionPane.showOptionDialog(null, "Customer Menu", "Customer", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, new String[]{"View Products", "Place Order", "Exit"}, null);
+
+                switch (choice) {
+                    case 0:
+                        // View Products
+                        showProductsForCustomer();
+                        break;
+                    case 1:
+                        // Place Order
+                        placeOrder();
+                        break;
+                    case 2:
+                        // Exit
+                        break;
+                }
+            }
+        
+        });
+
+        // Function to display products for the customer
+        private void showProductsForCustomer() {
+            try {
+                // Connect to the database
+                String dbUrl = "jdbc:mysql://localhost:3306/PROJECT1";
+                String dbUser = "root";
+                String dbPassword = "Qwerty#80085";
+                Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+
+                // Query to retrieve products
+                String query = "SELECT * FROM products";
+                PreparedStatement statement = conn.prepareStatement(query);
+                ResultSet resultSet = statement.executeQuery();
+
+                StringBuilder productsList = new StringBuilder("List of Products:\n");
+
+                while (resultSet.next()) {
+                    int productId = resultSet.getInt("productid");
+                    String productName = resultSet.getString("productname");
+                    int productQuantity = resultSet.getInt("quantity");
+                    int productPrice = resultSet.getInt("price");
+                    String sellerName = resultSet.getString("seller_name");
+
+                    productsList.append("Product ID: ").append(productId).append("\n");
+                    productsList.append("Product Name: ").append(productName).append("\n");
+                    productsList.append("Quantity: ").append(productQuantity).append("\n");
+                    productsList.append("Price: ").append(productPrice).append("\n");
+                    productsList.append("Seller Name: ").append(sellerName).append("\n\n");
+                }
+
+                JOptionPane.showMessageDialog(null, productsList.toString(), "Products", JOptionPane.INFORMATION_MESSAGE);
+
+                // Close the database connection
+                conn.close();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(null, "Database connection error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        // Function to allow the customer to place an order
+        private void placeOrder() {
+            try {
+                // Connect to the database
+                String dbUrl = "jdbc:mysql://localhost:3306/PROJECT1";
+                String dbUser = "root";
+                String dbPassword = "Qwerty#80085";
+                Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+
+                // Retrieve available products
+                String query = "SELECT productid, productname FROM products WHERE quantity > 0";
+                PreparedStatement statement = conn.prepareStatement(query);
+                ResultSet resultSet = statement.executeQuery();
+
+                // Create a list of available products for the customer to choose from
+                DefaultComboBoxModel<String> productModel = new DefaultComboBoxModel<>();
+                while (resultSet.next()) {
+                    int productId = resultSet.getInt("productid");
+                    String productName = resultSet.getString("productname");
+                    productModel.addElement(productId + ": " + productName);
+                }
+
+                // Create a combo box for product selection
+                JComboBox<String> productComboBox = new JComboBox<>(productModel);
+
+                // Input dialog for product selection
+                JPanel panel = new JPanel(new GridLayout(2, 1));
+                panel.add(new JLabel("Select a product to order:"));
+                panel.add(productComboBox);
+
+                int result = JOptionPane.showConfirmDialog(null, panel, "Place Order", JOptionPane.OK_CANCEL_OPTION);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    // Get the selected product
+                    String selectedProduct = (String) productComboBox.getSelectedItem();
+                    int productId = Integer.parseInt(selectedProduct.split(":")[0].trim());
+
+                    // Input quantity
+                    String quantityStr = JOptionPane.showInputDialog("Enter the quantity you want to order:");
+                    int quantity = Integer.parseInt(quantityStr);
+
+                    // Check if the quantity is available
+                    query = "SELECT quantity FROM products WHERE productid = ?";
+                    statement = conn.prepareStatement(query);
+                    statement.setInt(1, productId);
+                    resultSet = statement.executeQuery();
+
+                    if (resultSet.next()) {
+                        int availableQuantity = resultSet.getInt("quantity");
+
+                        if (quantity <= availableQuantity) {
+                            // The quantity is available, place the order
+                            // You can implement order processing logic here
+                            // Update the database and perform other necessary actions
+
+                            JOptionPane.showMessageDialog(null, "Order placed successfully.", "Order", JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Not enough quantity available for this product.", "Order", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Invalid product selection.", "Order", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+
+                // Close the database connection
+                conn.close();
+            } catch (SQLException | NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+
+        exitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+    }
+
+    private void showAdminMenu() {
+        try {
+            // Establish a database connection (replace with your actual database URL, username, and password)
+            String dbUrl = "jdbc:mysql://localhost:3306/PROJECT1";
+            String dbUser = "root";
+            String dbPassword = "Qwerty#80085";
+            Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+
+            while (true) {
+                // Display the admin menu options
+                String adminChoice = JOptionPane.showInputDialog("Admin Menu:\n[1] : Edit User Database\n[2] : Edit Product Database\n[3] : Exit\nYour choice sir:");
+
+                if (adminChoice == null) {
+                    // User clicked cancel or closed the dialog, exit the loop
+                    break;
+                }
+
+                try {
+                    int choice1R = Integer.parseInt(adminChoice);
+
+                    // Implement the admin menu options here
+                    if (choice1R == 1) {
+                        // User database editing
+                        while (true) {
+                            String userEditChoice = JOptionPane.showInputDialog("User Database Editing:\n[1] : Create a new user\n[2] : Delete an existing user\n[3] : Display all users\n[4] : Exit\nYour choice sir:");
+
+                            if (userEditChoice == null) {
+                                // User clicked cancel or closed the dialog, exit the loop
+                                break;
+                            }
+
+                            try {
+                                int choice2R = Integer.parseInt(userEditChoice);
+
+                                if (choice2R == 1) {
+                                    // Create a new user
+                                    String newUsername = JOptionPane.showInputDialog("Enter the new user ID:");
+                                    String newPassword = JOptionPane.showInputDialog("Enter the new password:");
+
+                                    // Implement user creation in the database
+                                    String createUserSQL = "INSERT INTO user(userid, passcode) VALUES (?, ?)";
+                                    PreparedStatement createUserStmt = conn.prepareStatement(createUserSQL);
+                                    createUserStmt.setString(1, newUsername);
+                                    createUserStmt.setString(2, newPassword);
+                                    createUserStmt.executeUpdate();
+
+                                    JOptionPane.showMessageDialog(null, "New user added successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 2) {
+                                    // Delete an existing user
+                                    String deleteUser = JOptionPane.showInputDialog("Enter the user ID of the user you want to delete:");
+
+                                    // Implement user deletion in the database
+                                    String deleteUserSQL = "DELETE FROM user WHERE userid = ?";
+                                    PreparedStatement deleteUserStmt = conn.prepareStatement(deleteUserSQL);
+                                    deleteUserStmt.setString(1, deleteUser);
+                                    deleteUserStmt.executeUpdate();
+
+                                    JOptionPane.showMessageDialog(null, "User deleted successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 3) {
+                                    // Display all users
+                                    StringBuilder usersList = new StringBuilder("List of all users:\n");
+                                    String selectUsersSQL = "SELECT * FROM user";
+                                    PreparedStatement selectUsersStmt = conn.prepareStatement(selectUsersSQL);
+                                    ResultSet usersResultSet = selectUsersStmt.executeQuery();
+
+                                    while (usersResultSet.next()) {
+                                        String userId = usersResultSet.getString("userid");
+                                        String passcode = usersResultSet.getString("passcode");
+                                        usersList.append("UserID: ").append(userId).append(" | Passcode: ").append(passcode).append("\n");
+                                    }
+
+                                    JOptionPane.showMessageDialog(null, usersList.toString(), "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice2R == 4) {
+                                    // Exit user database editing
+                                    break;
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Invalid choice. Please select a valid option.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                }
+                            } catch (NumberFormatException ex) {
+                                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number.", "Admin", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                        
+                    } 
+                     else if (choice1R == 2) {
+                        // Product database editing
+                        while (true) {
+                            String productEditChoice = JOptionPane.showInputDialog("Product Database Editing:\n[1] : Create a new product\n[2] : Edit an existing product\n[3] : Delete an existing product\n[4] : Display all products\n[5] : Exit\nYour choice sir:");
+
+                            if (productEditChoice == null) {
+                                // User clicked cancel or closed the dialog, exit the loop
+                                break;
+                            }
+
+                            try {
+                                int choice3R = Integer.parseInt(productEditChoice);
+
+                                if (choice3R == 1) {
+                                    // Create a new product
+                                    String productIdStr = JOptionPane.showInputDialog("Enter the product ID:");
+                                    String productName = JOptionPane.showInputDialog("Enter the product name:");
+                                    String productQuantityStr = JOptionPane.showInputDialog("Enter the quantity:");
+                                    String productPriceStr = JOptionPane.showInputDialog("Enter the price:");
+                                    String sellerName = JOptionPane.showInputDialog("Enter the seller name:");
+
+                                    try {
+                                        int productId = Integer.parseInt(productIdStr);
+                                        int productQuantity = Integer.parseInt(productQuantityStr);
+                                        int productPrice = Integer.parseInt(productPriceStr);
+
+                                        // Implement product creation in the database
+                                        String createProductSQL = "INSERT INTO products(productid, productname, quantity, price, seller_name) VALUES (?, ?, ?, ?, ?)";
+                                        PreparedStatement createProductStmt = conn.prepareStatement(createProductSQL);
+                                        createProductStmt.setInt(1, productId);
+                                        createProductStmt.setString(2, productName);
+                                        createProductStmt.setInt(3, productQuantity);
+                                        createProductStmt.setInt(4, productPrice);
+                                        createProductStmt.setString(5, sellerName);
+                                        createProductStmt.executeUpdate();
+
+                                        JOptionPane.showMessageDialog(null, "New product added successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                    } catch (NumberFormatException ex) {
+                                        JOptionPane.showMessageDialog(null, "Invalid input. Please enter valid numbers.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                } else if (choice3R == 2) {
+                                    // Edit an existing product
+                                    String productIdStr = JOptionPane.showInputDialog("Enter the product ID of the product you want to edit:");
+                                    String productName = JOptionPane.showInputDialog("Enter the new product name:");
+                                    String productQuantityStr = JOptionPane.showInputDialog("Enter the new quantity:");
+                                    String productPriceStr = JOptionPane.showInputDialog("Enter the new price:");
+                                    String sellerName = JOptionPane.showInputDialog("Enter the new seller name:");
+
+                                    try {
+                                        int productId = Integer.parseInt(productIdStr);
+                                        int productQuantity = Integer.parseInt(productQuantityStr);
+                                        int productPrice = Integer.parseInt(productPriceStr);
+
+                                        // Implement product update in the database
+                                        String updateProductSQL = "UPDATE products SET productname = ?, quantity = ?, price = ?, seller_name = ? WHERE productid = ?";
+                                        PreparedStatement updateProductStmt = conn.prepareStatement(updateProductSQL);
+                                        updateProductStmt.setString(1, productName);
+                                        updateProductStmt.setInt(2, productQuantity);
+                                        updateProductStmt.setInt(3, productPrice);
+                                        updateProductStmt.setString(4, sellerName);
+                                        updateProductStmt.setInt(5, productId);
+                                        updateProductStmt.executeUpdate();
+
+                                        JOptionPane.showMessageDialog(null, "Product updated successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                    } catch (NumberFormatException ex) {
+                                        JOptionPane.showMessageDialog(null, "Invalid input. Please enter valid numbers.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                } else if (choice3R == 3) {
+                                    // Delete an existing product
+                                    String productIdStr = JOptionPane.showInputDialog("Enter the product ID of the product you want to delete:");
+
+                                    try {
+                                        int productId = Integer.parseInt(productIdStr);
+
+                                        // Implement product deletion in the database
+                                        String deleteProductSQL = "DELETE FROM products WHERE productid = ?";
+                                        PreparedStatement deleteProductStmt = conn.prepareStatement(deleteProductSQL);
+                                        deleteProductStmt.setInt(1, productId);
+                                        deleteProductStmt.executeUpdate();
+
+                                        JOptionPane.showMessageDialog(null, "Product deleted successfully.", "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                    } catch (NumberFormatException ex) {
+                                        JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid product ID.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                } else if (choice3R == 4) {
+                                    // Display all products
+                                    StringBuilder productsList = new StringBuilder("List of all products:\n");
+                                    String selectProductsSQL = "SELECT * FROM products";
+                                    PreparedStatement selectProductsStmt = conn.prepareStatement(selectProductsSQL);
+                                    ResultSet productsResultSet = selectProductsStmt.executeQuery();
+
+                                    while (productsResultSet.next()) {
+                                        int productId = productsResultSet.getInt("productid");
+                                        String productName = productsResultSet.getString("productname");
+                                        int productQuantity = productsResultSet.getInt("quantity");
+                                        int productPrice = productsResultSet.getInt("price");
+                                        String sellerName = productsResultSet.getString("seller_name");
+
+                                        productsList.append("Product ID: ").append(productId).append("\n");
+                                        productsList.append("Product Name: ").append(productName).append("\n");
+                                        productsList.append("Quantity: ").append(productQuantity).append("\n");
+                                        productsList.append("Price: ").append(productPrice).append("\n");
+                                        productsList.append("Seller Name: ").append(sellerName).append("\n\n");
+                                    }
+
+                                    JOptionPane.showMessageDialog(null, productsList.toString(), "Admin", JOptionPane.INFORMATION_MESSAGE);
+                                } else if (choice3R == 5) {
+                                    // Exit product database editing
+                                    break;
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Invalid choice. Please select a valid option.", "Admin", JOptionPane.ERROR_MESSAGE);
+                                }
+                            } catch (NumberFormatException ex) {
+                                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number.", "Admin", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                     else if (choice1R == 3) {
+                        // Exit admin menu
+                        break; // Exit the admin menu loop when user chooses to exit
+                    } // Add this closing brace
+                    else {
+                        JOptionPane.showMessageDialog(null, "Invalid choice. Please select a valid option.", "Admin", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number.", "Admin", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+            // Close the database connection when done
+            conn.close();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database connection error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                InventoryControlManagerGUI inventoryControlManager = new InventoryControlManagerGUI();
+                inventoryControlManager.setVisible(true); // Set the instance to be visible
+            }
+        });
+    }
+}

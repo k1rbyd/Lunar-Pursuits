@@ -1,0 +1,544 @@
+JS
+
+// app.js
+const express = require('express');
+const mysql = require('mysql2/promise');
+const bodyParser = require('body-parser');
+const path = require('path');
+const dotenv = require('dotenv'); // Load environment variables from .env file
+const winston = require('winston'); // Logging library
+
+dotenv.config(); // Load environment variables from .env file
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+
+// Serve static files from the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || 'Qwerty#80085',
+  database: process.env.DB_NAME || 'PROJECT2',
+};
+
+const pool = mysql.createPool(dbConfig);
+
+// Initialize Winston Logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'express-app' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/transactions-to-market', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    // Query transactions to market from your database
+    const [rows] = await connection.query('SELECT * FROM transactions_to_market');
+
+    // Release the database connection
+    connection.release();
+
+    // Send the transaction data as JSON response
+    res.json(rows);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/transactions-from-market', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    // Query transactions from market from your database
+    const [rows] = await connection.query('SELECT * FROM transactions_from_market');
+
+    // Release the database connection
+    connection.release();
+
+    // Send the transaction data as JSON response
+    res.json(rows);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/buy', async (req, res) => {
+  const { market, productName, quantity } = req.body;
+
+  try {
+    const connection = await pool.getConnection();
+
+    // Check if the product is available in the selected market
+    const [rows] = await connection.query('SELECT quantity, price FROM ?? WHERE productname = ?', [market, productName]);
+
+    if (rows.length === 0) {
+      // Product not found in the selected market
+      connection.release();
+      return res.status(404).json({ error: 'Product not available in this market' });
+    }
+
+    const availableQuantity = rows[0].quantity;
+    const pricePerUnit = rows[0].price;
+
+    if (quantity <= 0 || quantity > availableQuantity) {
+      // Invalid quantity
+      connection.release();
+      return res.status(400).json({ error: 'Invalid quantity' });
+    }
+
+    // Calculate the total price
+    const totalPrice = pricePerUnit * quantity;
+
+    // Update the database: subtract purchased quantity from the market
+    await connection.query('UPDATE ?? SET quantity = quantity - ? WHERE productname = ?', [market, quantity, productName]);
+
+    // Insert a transaction record
+    await connection.query('INSERT INTO transactions_to_market (product_name, market_name, quantity, total_price) VALUES (?, ?, ?, ?)', [productName, market, quantity, totalPrice]);
+
+    connection.release();
+    res.json({ message: 'Product bought successfully', totalPrice });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/sell', async (req, res) => {
+  const { market, productName, quantity } = req.body;
+
+  try {
+    const connection = await pool.getConnection();
+
+    // Check if the product is available in the selected market
+    const [rows] = await connection.query('SELECT quantity, price FROM ?? WHERE productname = ?', [market, productName]);
+
+    if (rows.length === 0) {
+      // Product not found in the selected market
+      connection.release();
+      return res.status(404).json({ error: 'Product not available in this market' });
+    }
+
+    const availableQuantity = rows[0].quantity;
+    const pricePerUnit = rows[0].price;
+
+    if (quantity <= 0) {
+      // Invalid quantity
+      connection.release();
+      return res.status(400).json({ error: 'Invalid quantity' });
+    }
+
+    // Calculate the total price
+    const totalPrice = pricePerUnit * quantity;
+
+    if (quantity > availableQuantity) {
+      // Not enough quantity available in the market
+      connection.release();
+      return res.status(400).json({ error: 'Insufficient quantity in the market' });
+    }
+
+    // Update the database: add sold quantity to the market
+    await connection.query('UPDATE ?? SET quantity = quantity + ? WHERE productname = ?', [market, quantity, productName]);
+
+    // Insert a transaction record
+    await connection.query('INSERT INTO transactions_from_market (product_name, market_name, quantity, total_price) VALUES (?, ?, ?, ?)', [productName, market, quantity, totalPrice]);
+
+    connection.release();
+    res.json({ message: 'Product sold successfully', totalPrice });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+
+
+HTML
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market System Controller</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      color: #333;
+    }
+
+    h2 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    input[type="submit"] {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to the Market System Controller!</h1>
+
+  <h2>Buy a Product</h2>
+  <form action="/buy" method="POST">
+    <label for="market">Market:</label>
+    <input type="text" id="market" name="market" required><br><br>
+    <label for="productName">Product Name:</label>
+    <input type="text" id="productName" name="productName" required><br><br>
+    <label for="quantity">Quantity:</label>
+    <input type="number" id="quantity" name="quantity" required><br><br>
+    <input type="submit" value="Buy">
+  </form>
+
+  <h2>Sell a Product</h2>
+  <form action="/sell" method="POST">
+    <label for="marketSell">Market:</label>
+    <input type="text" id="marketSell" name="market" required><br><br>
+    <label for="productNameSell">Product Name:</label>
+    <input type="text" id="productNameSell" name="productName" required><br><br>
+    <label for="quantitySell">Quantity:</label>
+    <input type="number" id="quantitySell" name="quantity" required><br><br>
+    <input type="submit" value="Sell">
+  </form>
+
+  <h2>View Transactions</h2>
+  <h3>Transactions to Market</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Market Name</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Placeholder for transactions to market -->
+      <tr>
+        <td>Product 1</td>
+        <td>Market A</td>
+        <td>10</td>
+        <td>$100</td>
+      </tr>
+      <!-- You can add more rows for additional transactions -->
+    </tbody>
+  </table>
+
+  <h3>Transactions from Market</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Market Name</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Placeholder for transactions from market -->
+      <tr>
+        <td>Product 2</td>
+        <td>Market B</td>
+        <td>5</td>
+        <td>$75</td>
+      </tr>
+      <!-- You can add more rows for additional transactions -->
+    </tbody>
+  </table>
+</body>
+</html>
+
+
+
+
+
+database used : project2
+
+tables present: market1, market2, market3 
+(all these 3 have the same schema, 
+
+productid int, productname varchar45, quantity int, price int)
+
+and these 2 tables as well
+
+CREATE TABLE `transactions_to_market` (
+  `transaction_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `product_name` VARCHAR(255) NOT NULL,
+  `market_name` VARCHAR(255) NOT NULL,
+  `quantity` INT NOT NULL,
+  `total_price` INT NOT NULL
+);
+
+CREATE TABLE `transactions_from_market` (
+  `transaction_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `product_name` VARCHAR(255) NOT NULL,
+  `market_name` VARCHAR(255) NOT NULL,
+  `quantity` INT NOT NULL,
+  `total_price` INT NOT NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market System Controller</title>
+  <style>
+/* Global Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 20px;
+  color: #333;
+}
+
+h2 {
+  margin-top: 20px;
+  color: #333;
+}
+
+/* Form Styles */
+form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+input[type="submit"] {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Links Styles */
+a {
+  display: block;
+  margin-top: 10px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+  </style>
+</head>
+<body>
+  
+  <h1>Welcome to the Market System Controller!</h1>
+  <script src="index.js"></script>
+
+  <h2>Buy a Product</h2>
+  <form action="/buy" method="POST">
+    <label for="market">Market:</label>
+    <input type="text" id="market" name="market" required><br><br>
+    <label for="productName">Product Name:</label>
+    <input type="text" id="productName" name="productName" required><br><br>
+    <label for="quantity">Quantity:</label>
+    <input type="number" id="quantity" name="quantity" required><br><br>
+    <input type="submit" value="Buy">
+  </form>
+
+  <h2>Sell a Product</h2>
+  <form action="/sell" method="POST">
+    <label for="marketSell">Market:</label>
+    <input type="text" id="marketSell" name="market" required><br><br>
+    <label for="productNameSell">Product Name:</label>
+    <input type="text" id="productNameSell" name="productName" required><br><br>
+    <label for="quantitySell">Quantity:</label>
+    <input type="number" id="quantitySell" name="quantity" required><br><br>
+    <input type="submit" value="Sell">
+  </form>
+
+  <h2>View Transactions</h2>
+  <h3>Transactions to Market</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Market Name</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Placeholder for transactions to market -->
+      <tr>
+        <td>Product 1</td>
+        <td>Market A</td>
+        <td>10</td>
+        <td>$100</td>
+      </tr>
+      <!-- You can add more rows for additional transactions -->
+    </tbody>
+  </table>
+
+  <h3>Transactions from Market</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Market Name</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Placeholder for transactions from market -->
+      <tr>
+        <td>Product 2</td>
+        <td>Market B</td>
+        <td>5</td>
+        <td>$75</td>
+      </tr>
+      <!-- You can add more rows for additional transactions -->
+    </tbody>
+  </table>
+</body>
+</html>

@@ -1,0 +1,9 @@
+cd D:\Personal\Project-Self\Projects\Searcher\src
+javac -cp ".;jsoup-1.17.1.jar" Program.java
+java -cp ".;jsoup-1.17.1.jar" Program
+
+
+
+
+javac -cp ".;jsoup-1.17.1.jar" Program.java
+java -cp ".;jsoup-1.17.1.jar" Program

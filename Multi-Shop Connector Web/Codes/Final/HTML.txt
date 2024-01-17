@@ -1,0 +1,1069 @@
+MAIN-MENU
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+        }
+
+        nav li {
+            margin: 0;
+            padding: 0;
+        }
+
+        nav a {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: white;
+        }
+
+        nav a:hover {
+            background-color: #555;
+        }
+
+        .additional-content {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #explore-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #explore-button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Main Menu</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/buy.html">Buy Products</a></li>
+            <li><a href="/sell.html">Sell Products</a></li>
+            <li><a href="/views/stocks.html">View Stocks</a></li>
+            <li><a href="/views/to.html">View Transactions To Market</a></li>
+            <li><a href="/views/from.html">View Transactions From Market</a></li>
+            <li><a href="/config.html">Change Database Configuration</a></li>
+            <li><a href="/exit.html">Exit</a></li>
+        </ul>
+    </nav>
+    <section class="additional-content">
+        <h2>Additional Content</h2>
+        <p>Welcome to our online marketplace. Explore the options below:</p>
+        <button id="explore-button">Explore</button>
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+STOCKS
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions To Market</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr {
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr:first-child {
+            background-color: #ddd;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin: 10px auto;
+            width: 150px;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Transactions To Market</h1>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Market Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+            <!-- Transactions data will be inserted here dynamically -->
+        </tbody>
+    </table>
+    <a href="/">Back to Main Menu</a>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+    <script src="axios.min.js"></script>
+    <script>
+        async function populateTransactionTable() {
+            try {
+                const response = await axios.get('/api/transactions-to-market');
+                if (response.status === 200) {
+                    const data = response.data;
+                    const tableBody = document.getElementById('transaction-table-body');
+                    tableBody.innerHTML = '';
+
+                    data.forEach((transaction) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${transaction.productname}</td>
+                            <td>${transaction.market}</td>
+                            <td>${transaction.quantity}</td>
+                            <td>${transaction.total_price}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    console.error('Failed to fetch data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Trigger the data population when the page loads
+        window.addEventListener('load', populateTransactionTable);
+    </script>
+</body>
+</html>
+
+
+FROM
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions From Market</title>
+    <link rel="stylesheet" href="styles.css"> <!-- You can link to an external stylesheet if needed -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr {
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr:first-child {
+            background-color: #ddd;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin: 10px auto;
+            width: 150px;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Transactions From Market</h1>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Market Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+            <!-- Transactions data will be inserted here dynamically -->
+        </tbody>
+    </table>
+    <a href="/">Back to Main Menu</a>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+    <script src="axios.min.js"></script>
+    <script>
+        async function populateTransactionTable() {
+            try {
+                const response = await axios.get('/api/transactions-from-market');
+                if (response.status === 200) {
+                    const data = response.data;
+                    const tableBody = document.getElementById('transaction-table-body');
+                    tableBody.innerHTML = '';
+
+                    data.forEach((transaction) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${transaction.product_name}</td>
+                            <td>${transaction.market_name}</td>
+                            <td>${transaction.quantity}</td>
+                            <td>${transaction.total_price}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    console.error('Failed to fetch data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        window.addEventListener('load', populateTransactionTable);
+    </script>
+</body>
+</html>
+
+
+TO
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions To Market</title>
+    <link rel="stylesheet" href="styles.css"> <!-- You can link to an external stylesheet if needed -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr {
+            border-bottom: 1px solid #ccc;
+        }
+
+        tr:first-child {
+            background-color: #ddd;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin: 10px auto;
+            width: 150px;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Transactions To Market</h1>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Market Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+            <!-- Transactions data will be inserted here dynamically -->
+        </tbody>
+    </table>
+    <a href="/">Back to Main Menu</a>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+    <script src="axios.min.js"></script>
+    <script>
+        async function populateTransactionTable() {
+            try {
+                const response = await axios.get('/api/transactions-to-market');
+                if (response.status === 200) {
+                    const data = response.data;
+                    const tableBody = document.getElementById('transaction-table-body');
+                    tableBody.innerHTML = '';
+
+                    data.forEach((transaction) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${transaction.product_name}</td>
+                            <td>${transaction.market_name}</td>
+                            <td>${transaction.quantity}</td>
+                            <td>${transaction.total_price}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    console.error('Failed to fetch data:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        window.addEventListener('load', populateTransactionTable);
+    </script>
+</body>
+</html>
+
+
+STYLE
+
+/* Reset some default styles */
+body, h1, h2, ul, p, button {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    margin: 10px 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    display: block;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+nav ul li a:hover {
+    background-color: #ddd;
+}
+
+section.additional-content {
+    text-align: center;
+    padding: 20px;
+}
+
+h2 {
+    color: #444;
+}
+
+p {
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+button#explore-button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button#explore-button:hover {
+    background-color: #0056b3;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+
+BUY
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Products</title>
+    <link rel="stylesheet" href="styles.css"> <!-- You can link to an external stylesheet if needed -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            background-color: #333;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+        }
+
+        nav ul li a {
+            display: block;
+            padding: 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+        }
+
+        nav ul li a:hover {
+            background-color: #0056b3;
+        }
+
+        .content {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 400px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Buy Products</h1>
+    </header>
+    <section class="content">
+        <h2>Select Products to Buy</h2>
+        <form action="/buy" method="POST">
+            <label for="market">Market:</label>
+            <select id="market" name="market">
+                <option value="market1">Market 1</option>
+                <option value="market2">Market 2</option>
+                <option value="market3">Market 3</option>
+            </select><br>
+            
+            <label for="productName">Product Name:</label>
+            <input type="text" id="productName" name="productName" required><br>
+            
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required><br>
+            
+            <input type="submit" value="Buy">
+        </form>
+        
+        <a href="/" style="display: block; text-align: center; margin-top: 10px; text-decoration: none; color: #007bff;">Back to Main Menu</a>
+
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+SELL
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sell Products</title>
+    <link rel="stylesheet" href="styles.css"> <!-- You can link to an external stylesheet if needed -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sell Products</h1>
+    </header>
+    <form action="/sell" method="post">
+        <label for="market">Market:</label>
+        <select id="market" name="market" required>
+            <option value="market1">Market 1</option>
+            <option value="market2">Market 2</option>
+            <option value="market3">Market 3</option>
+        </select><br>
+
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" name="productName" required><br>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" required><br>
+
+        <button type="submit">Sell</button>
+        <p>    </p>
+        <a href="/" style="display: block; text-align: center; margin-top: 10px; text-decoration: none; color: #007bff;">Back to Main Menu</a>
+
+    </form>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+CONFIG
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Database Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #555;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Change Database Configuration</h1>
+    </header>
+    <div class="content">
+        <h2>Update Database Configuration</h2>
+        <form action="/update-config" method="POST">
+            <label for="host">Host:</label>
+            <input type="text" id="host" name="host" required>
+
+            <label for="user">User:</label>
+            <input type="text" id="user" name="user" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="database">Database:</label>
+            <input type="text" id="database" name="database" required>
+
+            <button type="submit">Update Configuration</button>
+        </form>
+    </div>
+    <a href="/" style="display: block; text-align: center; margin-top: 10px; text-decoration: none; color: #007bff;">Back to Main Menu</a>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+EXIT
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exit</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        button[type="submit"] {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #555;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Exit</h1>
+    </header>
+    <div class="content">
+        <h2>Exit Application</h2>
+        <p>Are you sure you want to exit the application?</p>
+        <form action="/exit" method="POST">
+            <button type="submit">Yes, Exit</button>
+        </form>
+    </div>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
+
+
+
+
+
+
+JSON  {dbconfig.json}
+
+{
+  "host": "localhost",
+  "user": "root",
+  "password": "Qwerty#80085",
+  "database": "project2"
+}

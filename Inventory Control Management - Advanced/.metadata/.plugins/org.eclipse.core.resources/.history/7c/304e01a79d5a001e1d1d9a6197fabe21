@@ -1,0 +1,450 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class InventoryControlManager {
+    private static final String HOST = "localhost";
+    private static final String USER = "root";
+    private static final String PASS = "Qwerty#80085";
+
+    public static Connection createConnection() {
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://" + HOST + ":3306/PROJECT1", USER, PASS);
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+        return connection;
+    }
+
+    public static String toUpper(String str) {
+        return str.toUpperCase();
+    }
+
+    public static void main(String[] args) {
+        Connection connection = createConnection();
+        if (connection == null) {
+            System.exit(1);
+        }
+
+        Scanner scanner = new Scanner(System.in);
+        String username;
+        String password;
+        int productid;
+        String productname;
+        int quantity;
+        int price;
+        String seller_name;
+        boolean program_running = true;
+        int answer;
+        String sentence_aux;
+        boolean access = false;
+        boolean access_r = false;
+
+        int response0;
+        System.out.println("Are you ROOT?");
+        System.out.println("[1] : Yes");
+        System.out.println("[2] : No");
+        System.out.print("Your Response:");
+        response0 = scanner.nextInt();
+        System.out.println();
+
+        if (response0 == 1) {
+            String rootPassword;
+            System.out.print("Enter the root password sir: ");
+            rootPassword = scanner.next();
+            System.out.println();
+
+            if (rootPassword.equals(PASS)) {
+                access_r = true;
+                System.out.println("Access granted as ROOT.");
+                System.out.println("\n\n");
+            } else {
+                System.out.println("Access denied. Incorrect root password.");
+                System.exit(1);
+            }
+        }
+
+        if (!access && !access_r) {
+            System.out.print("Enter your user ID: ");
+            username = scanner.next();
+            System.out.print("Enter your password: ");
+            password = scanner.next();
+
+            String query = "SELECT userid FROM user WHERE userid = ? AND passcode = ?";
+
+            try (PreparedStatement stmt = connection.prepareStatement(query)) {
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                ResultSet resultSet = stmt.executeQuery();
+                if (resultSet.next()) {
+                    access = true;
+                    System.out.println("Access granted.");
+                    System.out.println("\n\n");
+                } else {
+                    access = false;
+                    System.out.println("Access denied.");
+                    System.exit(1);
+                }
+            } catch (SQLException e) {
+                System.err.println("ERROR: " + e.getMessage());
+                System.exit(1);
+            }
+        }
+
+        if (access_r) {
+            while (program_running) {
+                System.out.println();
+                System.out.println("What do you want to do Sir:");
+                System.out.println("[1] : Edit User Database");
+                System.out.println("[2] : Edit Product Database");
+                System.out.println("[3] : Exit");
+                System.out.print("Your choice sir:");
+                int choice1_r = scanner.nextInt();
+                scanner.nextLine();
+                System.out.println();
+
+                if (choice1_r == 1) {
+                    boolean run_r = true;
+                    while (run_r) {
+                        System.out.println();
+                        System.out.println("What do you want to do in the User Database Sir:");
+                        System.out.println("[1] : Create a new user");
+                        System.out.println("[2] : Delete an existing user");
+                        System.out.println("[3] : Display all the users");
+                        System.out.println("[4] : Exit");
+                        System.out.print("Your Choice Sir:");
+
+                        int choice2_r = scanner.nextInt();
+                        scanner.nextLine();
+                        System.out.println();
+
+                        if (choice2_r == 1) {
+                            String newUsername;
+                            String newPassword;
+
+                            System.out.print("Enter the new username: ");
+                            newUsername = scanner.next();
+                            System.out.print("Enter the new password: ");
+                            newPassword = scanner.next();
+                            System.out.println();
+
+                            sentence_aux = "INSERT INTO user(userid, passcode) VALUES (?, ?)";
+                            try (PreparedStatement insert_stmt = connection.prepareStatement(sentence_aux)) {
+                                insert_stmt.setString(1, newUsername);
+                                insert_stmt.setString(2, newPassword);
+                                int result = insert_stmt.executeUpdate();
+                                if (result > 0) {
+                                    System.out.println("New user added successfully.");
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice2_r == 2) {
+                            String deleteUser;
+
+                            System.out.print("Enter the username of the user you want to delete: ");
+                            deleteUser = scanner.next();
+                            System.out.println();
+
+                            sentence_aux = "DELETE FROM user WHERE userid = ?";
+                            try (PreparedStatement delete_stmt = connection.prepareStatement(sentence_aux)) {
+                                delete_stmt.setString(1, deleteUser);
+                                int result = delete_stmt.executeUpdate();
+                                if (result > 0) {
+                                    System.out.println("User deleted successfully.");
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice2_r == 3) {
+                            System.out.println();
+                            System.out.println("List of all users:");
+                            String queryAllUsers = "SELECT * FROM user";
+                            try (Statement stmt = connection.createStatement();
+                                 ResultSet resultSet = stmt.executeQuery(queryAllUsers)) {
+                                while (resultSet.next()) {
+                                    System.out.println("UserID: " + resultSet.getString("userid") + " | Passcode: " + resultSet.getString("passcode"));
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice2_r == 4) {
+                            run_r = false;
+                        }
+                    }
+                }
+
+                if (choice1_r == 2) {
+                    boolean run_r = true;
+                    while (run_r) {
+                        System.out.println();
+                        System.out.println("What do you want to do in the Product Database Sir:");
+                        System.out.println("[1] : Create a new product");
+                        System.out.println("[2] : Edit an existing product");
+                        System.out.println("[3] : Delete an existing product");
+                        System.out.println("[4] : Display all the products");
+                        System.out.println("[5] : Exit");
+                        System.out.print("Your Choice Sir:");
+
+                        int choice3_r = scanner.nextInt();
+                        scanner.nextLine();
+                        System.out.println();
+
+                        if (choice3_r == 1) {
+                            System.out.print("Enter the product ID: ");
+                            productid = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the product name: ");
+                            productname = scanner.nextLine();
+                            System.out.print("Enter the quantity: ");
+                            quantity = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the price: ");
+                            price = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the seller name: ");
+                            seller_name = scanner.nextLine();
+                            System.out.println();
+
+                            productname = toUpper(productname);
+                            seller_name = toUpper(seller_name);
+
+                            sentence_aux = "INSERT INTO products(productid, productname, quantity, price, seller_name) VALUES (?, ?, ?, ?, ?)";
+                            try (PreparedStatement insert_stmt = connection.prepareStatement(sentence_aux)) {
+                                insert_stmt.setInt(1, productid);
+                                insert_stmt.setString(2, productname);
+                                insert_stmt.setInt(3, quantity);
+                                insert_stmt.setInt(4, price);
+                                insert_stmt.setString(5, seller_name);
+                                int result = insert_stmt.executeUpdate();
+                                if (result > 0) {
+                                    System.out.println("New product added successfully.");
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice3_r == 2) {
+                            System.out.print("Enter the product ID of the product you want to edit: ");
+                            productid = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the new product name: ");
+                            productname = scanner.nextLine();
+                            System.out.print("Enter the new quantity: ");
+                            quantity = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the new price: ");
+                            price = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.print("Enter the new seller name: ");
+                            seller_name = scanner.nextLine();
+                            System.out.println();
+
+                            productname = toUpper(productname);
+                            seller_name = toUpper(seller_name);
+
+                            sentence_aux = "UPDATE products SET productname = ?, quantity = ?, price = ?, seller_name = ? WHERE productid = ?";
+                            try (PreparedStatement update_stmt = connection.prepareStatement(sentence_aux)) {
+                                update_stmt.setString(1, productname);
+                                update_stmt.setInt(2, quantity);
+                                update_stmt.setInt(3, price);
+                                update_stmt.setString(4, seller_name);
+                                update_stmt.setInt(5, productid);
+                                int result = update_stmt.executeUpdate();
+                                if (result > 0) {
+                                    System.out.println("Product updated successfully.");
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice3_r == 3) {
+                            System.out.print("Enter the product ID of the product you want to delete: ");
+                            productid = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.println();
+
+                            sentence_aux = "DELETE FROM products WHERE productid = ?";
+                            try (PreparedStatement delete_stmt = connection.prepareStatement(sentence_aux)) {
+                                delete_stmt.setInt(1, productid);
+                                int result = delete_stmt.executeUpdate();
+                                if (result > 0) {
+                                    System.out.println("Product deleted successfully.");
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice3_r == 4) {
+                            System.out.println();
+                            System.out.println("List of all products:");
+                            String queryAllProducts = "SELECT * FROM products";
+                            try (Statement stmt = connection.createStatement();
+                                 ResultSet resultSet = stmt.executeQuery(queryAllProducts)) {
+                                while (resultSet.next()) {
+                                    System.out.println("Product ID: " + resultSet.getInt("productid") + " | Product Name: " +
+                                            resultSet.getString("productname") + " | Quantity: " + resultSet.getInt("quantity") +
+                                            " | Price: " + resultSet.getInt("price") + " | Seller Name: " + resultSet.getString("seller_name"));
+                                }
+                            } catch (SQLException e) {
+                                System.err.println("ERROR: " + e.getMessage());
+                            }
+                        }
+
+                        if (choice3_r == 5) {
+                            run_r = false;
+                        }
+                    }
+                }
+
+                if (choice1_r == 3) {
+                    program_running = false;
+                    System.out.println("Have A Nice Day Sir.");
+                }
+            }
+        }
+
+        if (access) {
+            boolean UA = true;
+            while (UA) {
+                System.out.println();
+                System.out.println("What do you want to do in the Product Database :");
+                System.out.println("[1] : Create a new product");
+                System.out.println("[2] : Edit an existing product");
+                System.out.println("[3] : Delete an existing product");
+                System.out.println("[4] : Display all the products");
+                System.out.println("[5] : Exit");
+                System.out.print("Your Choice:");
+
+                int choice3_r = scanner.nextInt();
+                scanner.nextLine();
+                System.out.println();
+
+                if (choice3_r == 1) {
+                    System.out.print("Enter the product ID: ");
+                    productid = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the product name: ");
+                    productname = scanner.nextLine();
+                    System.out.print("Enter the quantity: ");
+                    quantity = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the price: ");
+                    price = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the seller name: ");
+                    seller_name = scanner.nextLine();
+                    System.out.println();
+
+                    productname = toUpper(productname);
+                    seller_name = toUpper(seller_name);
+
+                    sentence_aux = "INSERT INTO products(productid, productname, quantity, price, seller_name) VALUES (?, ?, ?, ?, ?)";
+                    try (PreparedStatement insert_stmt = connection.prepareStatement(sentence_aux)) {
+                        insert_stmt.setInt(1, productid);
+                        insert_stmt.setString(2, productname);
+                        insert_stmt.setInt(3, quantity);
+                        insert_stmt.setInt(4, price);
+                        insert_stmt.setString(5, seller_name);
+                        int result = insert_stmt.executeUpdate();
+                        if (result > 0) {
+                            System.out.println("New product added successfully.");
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    }
+                }
+
+                if (choice3_r == 2) {
+                    System.out.print("Enter the product ID of the product you want to edit: ");
+                    productid = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the new product name: ");
+                    productname = scanner.nextLine();
+                    System.out.print("Enter the new quantity: ");
+                    quantity = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the new price: ");
+                    price = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter the new seller name: ");
+                    seller_name = scanner.nextLine();
+                    System.out.println();
+
+                    productname = toUpper(productname);
+                    seller_name = toUpper(seller_name);
+
+                    sentence_aux = "UPDATE products SET productname = ?, quantity = ?, price = ?, seller_name = ? WHERE productid = ?";
+                    try (PreparedStatement update_stmt = connection.prepareStatement(sentence_aux)) {
+                        update_stmt.setString(1, productname);
+                        update_stmt.setInt(2, quantity);
+                        update_stmt.setInt(3, price);
+                        update_stmt.setString(4, seller_name);
+                        update_stmt.setInt(5, productid);
+                        int result = update_stmt.executeUpdate();
+                        if (result > 0) {
+                            System.out.println("Product updated successfully.");
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    }
+                }
+
+                if (choice3_r == 3) {
+                    System.out.print("Enter the product ID of the product you want to delete: ");
+                    productid = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.println();
+
+                    sentence_aux = "DELETE FROM products WHERE productid = ?";
+                    try (PreparedStatement delete_stmt = connection.prepareStatement(sentence_aux)) {
+                        delete_stmt.setInt(1, productid);
+                        int result = delete_stmt.executeUpdate();
+                        if (result > 0) {
+                            System.out.println("Product deleted successfully.");
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    }
+                }
+
+                if (choice3_r == 4) {
+                    System.out.println();
+                    System.out.println("List of all products:");
+                    String queryAllProducts = "SELECT * FROM products";
+                    try (Statement stmt = connection.createStatement();
+                         ResultSet resultSet = stmt.executeQuery(queryAllProducts)) {
+                        while (resultSet.next()) {
+                            System.out.println("Product ID: " + resultSet.getInt("productid") + " | Product Name: " +
+                                    resultSet.getString("productname") + " | Quantity: " + resultSet.getInt("quantity") +
+                                    " | Price: " + resultSet.getInt("price") + " | Seller Name: " + resultSet.getString("seller_name"));
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    }
+                }
+
+                if (choice3_r == 5) {
+                    UA = false;
+                    System.out.println("Have a nice day~~");
+                }
+            }
+        }
+
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        }
+    }
+}

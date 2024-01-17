@@ -1,0 +1,21 @@
+
+Database : PROJECT1
+
+CREATE TABLE user (
+  userid INT NOT NULL,
+  passcode INT NOT NULL,
+  PRIMARY KEY (userid)
+);
+
+
+
+CREATE TABLE products (
+    productid INT NOT NULL,
+    productname VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL,
+    price INT NOT NULL,
+    seller_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (productid)
+);
+
+

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Products</title>
+    <link rel="stylesheet" href="styles.css"> <!-- You can link to an external stylesheet if needed -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            background-color: #333;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+        }
+
+        nav ul li a {
+            display: block;
+            padding: 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+        }
+
+        nav ul li a:hover {
+            background-color: #0056b3;
+        }
+
+        .content {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 400px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Buy Products</h1>
+    </header>
+    <section class="content">
+        <h2>Select Products to Buy</h2>
+        <form action="/buy" method="POST">
+            <label for="market">Market:</label>
+            <select id="market" name="market">
+                <option value="market1">Market 1</option>
+                <option value="market2">Market 2</option>
+                <option value="market3">Market 3</option>
+            </select><br>
+            
+            <label for="productName">Product Name:</label>
+            <input type="text" id="productName" name="productName" required><br>
+            
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required><br>
+            
+            <input type="submit" value="Buy">
+        </form>
+        
+        <a href="/" style="display: block; text-align: center; margin-top: 10px; text-decoration: none; color: #007bff;">Back to Main Menu</a>
+
+    </section>
+    <footer>
+        &copy; 2023 Your Company Name
+    </footer>
+</body>
+</html>
